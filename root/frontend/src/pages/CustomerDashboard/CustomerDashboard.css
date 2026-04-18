@@ -898,3 +898,173 @@
   color: #4b5563;
   font-style: italic;
 }
+
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .content-wrapper,
+  .admin-content,
+  .tech-content-wrapper {
+    padding: 20px;
+  }
+
+  .sidebar,
+  .admin-sidebar,
+  .tech-sidebar {
+    width: 220px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-layout,
+  .admin-layout,
+  .tech-dashboard-layout {
+    flex-direction: column;
+  }
+
+  .sidebar,
+  .admin-sidebar,
+  .tech-sidebar {
+    width: 100%;
+    height: auto;
+    padding: 10px 5px;
+    border-right: none;
+    border-top: 1px solid #e5e7eb;
+    order: 2;
+    position: fixed;
+    bottom: 0;
+    z-index: 100;
+    background-color: #ffffff;
+    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+
+  .sidebar-logo,
+  .admin-logo,
+  .tech-sidebar-logo,
+  .sidebar-user,
+  .admin-sidebar-user,
+  .tech-sidebar-user {
+    display: none !important;
+  }
+
+  .sidebar-nav,
+  .admin-sidebar-nav,
+  .tech-sidebar-nav {
+    flex-direction: row;
+    justify-content: space-around;
+  }
+
+  .nav-item,
+  .tech-nav-item {
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 4px;
+    font-size: 11px;
+    text-align: center;
+    justify-content: center;
+    border-radius: 8px;
+  }
+
+  .main-area,
+  .admin-main,
+  .tech-main-area {
+    order: 1;
+    padding-bottom: 80px;
+  }
+
+  .topbar,
+  .admin-header,
+  .tech-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 15px 20px;
+    gap: 15px;
+    height: auto;
+  }
+
+  .topbar-right,
+  .search-bar {
+    width: 100%;
+  }
+
+  .admin-header-inner {
+    padding: 15px 20px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .middle-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .category-card {
+    width: calc(50% - 10px);
+  }
+
+  .panel,
+  .task-section,
+  .track-card,
+  .recent-requests-panel {
+    padding: 15px;
+    overflow-x: auto;
+  }
+
+  .track-footer {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+@media (max-width: 480px) {
+  .dashboard-layout,
+  .admin-layout,
+  .tech-dashboard-layout {
+    flex-direction: column;
+  }
+
+  .sidebar,
+  .admin-sidebar,
+  .tech-sidebar {
+    width: 100%;
+    height: auto;
+    padding: 10px 5px;
+    border-right: none;
+    border-top: 1px solid #e5e7eb;
+    order: 2;
+    position: fixed;
+    bottom: 0;
+    z-index: 100;
+    background-color: #ffffff;
+    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+
+  .sidebar-logo,
+  .admin-logo,
+  .tech-sidebar-logo,
+  .sidebar-user,
+  .admin-sidebar-user,
+  .tech-sidebar-user {
+    display: none !important;
+  }
+
+  .sidebar-nav,
+  .admin-sidebar-nav,
+  .tech-sidebar-nav {
+    flex-direction: row;
+    justify-content: space-around;
+  }
+
+  .nav-item,
+  .tech-nav-item {
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 4px;
+    font-size: 11px;
+    text-align: center;
+    justify-content: center;
+    border-radius: 8px;
+  }
+}
