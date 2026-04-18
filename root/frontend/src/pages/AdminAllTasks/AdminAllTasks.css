@@ -1,0 +1,82 @@
+.full-width-main {
+  margin-left: 0;
+  width: 100%;
+}
+
+.left-aligned-header {
+  justify-content: flex-start;
+  padding-left: 30px;
+}
+
+.back-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  cursor: pointer;
+  font-weight: 500;
+  color: #4b5563;
+  transition: background 0.2s;
+}
+
+.back-btn:hover {
+  background: #f9fafb;
+}
+
+.padded-content {
+  padding: 30px;
+}
+
+.left-title {
+  margin-top: 0;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.scrollable-panel {
+  overflow-x: auto;
+}
+
+.empty-state-msg {
+  padding: 40px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.nowrap-table {
+  white-space: nowrap;
+}
+
+.fw-500 {
+  font-weight: 500;
+}
+
+.tech-assigned {
+  color: #5c88ff;
+}
+
+.tech-unassigned {
+  color: #9ca3af;
+}
+
+.text-13 {
+  font-size: 13px;
+}
+
+.text-gray-dark {
+  color: #374151;
+}
+
+.text-gray-light {
+  color: #9ca3af;
+}
+
+.text-dark {
+  color: #1f2937;
+}
+
+.rejection-text {
+  color: #ef4444;
+  font-style: italic;
+  font-size: 13px;
+}

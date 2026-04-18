@@ -1,0 +1,134 @@
+.full-width-main {
+  margin-left: 0;
+  width: 100%;
+}
+
+.left-aligned-header {
+  justify-content: flex-start;
+  padding-left: 30px;
+}
+
+.back-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  cursor: pointer;
+  font-weight: 500;
+  color: #4b5563;
+  transition: background 0.2s;
+}
+
+.back-btn:hover {
+  background: #f9fafb;
+}
+
+.padded-content {
+  padding: 30px;
+}
+
+.left-title {
+  margin-top: 0;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.empty-state-msg {
+  padding: 40px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.fw-500 {
+  font-weight: 500;
+}
+
+.text-dark {
+  color: #1f2937;
+}
+
+.text-success-bold {
+  color: #065f46;
+  font-weight: bold;
+  text-align: center;
+}
+
+.pr-60 {
+  padding-right: 60px;
+}
+
+.progress-track {
+  width: 100%;
+  max-width: 200px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  height: 8px;
+  margin-top: 4px;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.progress-fill.good {
+  background-color: #10b981;
+}
+
+.progress-fill.average {
+  background-color: #f59e0b;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.star {
+  font-size: 18px;
+}
+
+.star-filled {
+  color: #fbbf24;
+}
+
+.star-empty {
+  color: #e5e7eb;
+}
+
+.text-gray-light {
+  color: #9ca3af;
+}
+
+.text-13 {
+  font-size: 13px;
+}
+
+.badge-terminate {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  border: 1px solid #f87171;
+}
+
+.badge-bonus {
+  background-color: #fef3c7;
+  color: #d97706;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  border: 1px solid #fbbf24;
+}
+
+.badge-neutral {
+  color: #9ca3af;
+  font-size: 13px;
+}
