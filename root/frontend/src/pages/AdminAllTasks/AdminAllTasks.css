@@ -2,21 +2,6 @@
    1. LAYOUT & CONTAINERS
 ========================================= */
 
-table {
-  width: 50%;
-  min-width: max-content;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  padding: 13px 10px; 
-  text-align: left;
-  font-size: 14px;
-  border-bottom: 1px solid #f3f4f6;
-  white-space: nowrap;
-}
-
 .full-width-main {
   margin-left: 0;
   width: 100%;
