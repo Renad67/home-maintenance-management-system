@@ -10,6 +10,7 @@ export default function Login() {
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [role, setRole] = useState("customer");
   const [error, setError] = useState("");
+  const [infoMsg, setInfoMsg] = useState(""); // 🔥 NEW: State for our professional message
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,6 +25,7 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setInfoMsg(""); // Clear info messages on new attempts
     try {
       const { user } = await login(email, password);
       if (user.role === "admin") navigate("/admin-dashboard");
@@ -37,6 +39,7 @@ export default function Login() {
   const handleSignUp = async (e) => {
     e.preventDefault();
     setError("");
+    setInfoMsg("");
     try {
       await register({
         name,
@@ -185,8 +188,12 @@ export default function Login() {
               </p>
             </div>
 
+            {/* 🔥 NEW PROFESSIONAL MESSAGES HERE 🔥 */}
             {error && !isRightPanelActive && (
               <div className="error-message">{error}</div>
+            )}
+            {infoMsg && !isRightPanelActive && (
+              <div className="info-message">{infoMsg}</div>
             )}
 
             <div className="input-group">
@@ -203,6 +210,20 @@ export default function Login() {
             <div className="input-group">
               <div className="password-header">
                 <label>Password</label>
+                {/* 🔥 UPDATED FORGOT PASSWORD LINK 🔥 */}
+                <a
+                  href="#"
+                  className="forgot-password-link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setError(""); // Clear any red errors
+                    setInfoMsg(
+                      "Please contact support at 0106598755 to reset your password.",
+                    );
+                  }}
+                >
+                  Forgot password?
+                </a>
               </div>
               <div className="password-wrapper">
                 <input
@@ -226,6 +247,13 @@ export default function Login() {
             <button type="submit" className="form-btn">
               Sign In →
             </button>
+
+            {/* Support Banner */}
+            <div className="support-banner">
+              <p>
+                Need help? Call Support: <strong>0106598755</strong>
+              </p>
+            </div>
           </form>
         </div>
 

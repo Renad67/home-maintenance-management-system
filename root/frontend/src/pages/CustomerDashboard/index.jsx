@@ -41,14 +41,23 @@ const CAT_ICONS = {
 };
 
 // Reusable Request Card Component
+// Reusable Request Card Component
 const RequestCard = ({ req, fetchRequests, user }) => {
   const [showReject, setShowReject] = useState(false);
   const [reason, setReason] = useState("");
+  const [chosenDate, setChosenDate] = useState(""); // 🔥 NEW STATE ADDED HERE
 
   const handleAction = async (decision) => {
     if (decision === "reject" && !reason) return setShowReject(true);
+
+    // 🔥 Require customer to pick a date if accepting
+    if (decision === "accept" && !chosenDate) {
+      return alert("Please select a preferred date first!");
+    }
+
     try {
-      await respondToProposal(req.requestid, decision, reason);
+      // 🔥 Pass the chosenDate to the backend
+      await respondToProposal(req.requestid, decision, reason, chosenDate);
       fetchRequests(user.id);
     } catch (err) {
       alert("Failed to respond to proposal.");
@@ -83,6 +92,30 @@ const RequestCard = ({ req, fetchRequests, user }) => {
             <span className="font-bold">
               Total: {Number(req.spare_parts_cost) + Number(req.labor_cost)} EGP
             </span>
+          </div>
+
+          <div className="date-selection-box">
+            <p className="font-bold date-selection-title">
+              Select your preferred date:
+            </p>
+            <label className="date-radio-label">
+              <input
+                type="radio"
+                name={`date-${req.requestid}`}
+                value={req.proposed_date_1?.split("T")[0]}
+                onChange={(e) => setChosenDate(e.target.value)}
+              />{" "}
+              {req.proposed_date_1?.split("T")[0]}
+            </label>
+            <label className="date-radio-label date-radio-second">
+              <input
+                type="radio"
+                name={`date-${req.requestid}`}
+                value={req.proposed_date_2?.split("T")[0]}
+                onChange={(e) => setChosenDate(e.target.value)}
+              />{" "}
+              {req.proposed_date_2?.split("T")[0]}
+            </label>
           </div>
 
           {!showReject ? (

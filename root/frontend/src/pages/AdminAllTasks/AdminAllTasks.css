@@ -1,3 +1,22 @@
+/* =========================================
+   1. LAYOUT & CONTAINERS
+========================================= */
+
+table {
+  width: 50%;
+  min-width: max-content;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 13px 10px; 
+  text-align: left;
+  font-size: 14px;
+  border-bottom: 1px solid #f3f4f6;
+  white-space: nowrap;
+}
+
 .full-width-main {
   margin-left: 0;
   width: 100%;
@@ -6,21 +25,6 @@
 .left-aligned-header {
   justify-content: flex-start;
   padding-left: 30px;
-}
-
-.back-btn {
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background: white;
-  cursor: pointer;
-  font-weight: 500;
-  color: #4b5563;
-  transition: background 0.2s;
-}
-
-.back-btn:hover {
-  background: #f9fafb;
 }
 
 .padded-content {
@@ -37,30 +41,47 @@
   overflow-x: auto;
 }
 
+.nowrap-table {
+  white-space: nowrap;
+}
+
 .empty-state-msg {
   padding: 40px;
   text-align: center;
   color: #6b7280;
 }
 
-.nowrap-table {
-  white-space: nowrap;
+/* =========================================
+   2. BUTTONS
+========================================= */
+.back-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  cursor: pointer;
+  font-weight: 500;
+  color: #4b5563;
+  transition: background 0.2s;
 }
 
+.back-btn:hover {
+  background: #f9fafb;
+}
+
+/* =========================================
+   3. TEXT & UTILITY CLASSES
+========================================= */
 .fw-500 {
   font-weight: 500;
 }
 
-.tech-assigned {
-  color: #5c88ff;
-}
-
-.tech-unassigned {
-  color: #9ca3af;
-}
-
 .text-13 {
   font-size: 13px;
+}
+
+.text-dark {
+  color: #1f2937;
 }
 
 .text-gray-dark {
@@ -71,8 +92,15 @@
   color: #9ca3af;
 }
 
-.text-dark {
-  color: #1f2937;
+/* =========================================
+   4. SPECIFIC DATA STYLES (DATES & TECHS)
+========================================= */
+.tech-assigned {
+  color: #5c88ff;
+}
+
+.tech-unassigned {
+  color: #9ca3af;
 }
 
 .rejection-text {
@@ -81,6 +109,22 @@
   font-size: 13px;
 }
 
+.proposed-dates-text {
+  font-size: 11px;
+}
+
+.confirmed-date-text {
+  color: #2f6bff;
+  font-weight: bold;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* =========================================
+   5. RESPONSIVE DESIGN (MEDIA QUERIES)
+========================================= */
+
+/* --- TABLETS (Screens smaller than 1024px) --- */
 @media (max-width: 1024px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -99,6 +143,7 @@
   }
 }
 
+/* --- MOBILE PHONES (Screens smaller than 768px) --- */
 @media (max-width: 768px) {
   .dashboard-layout,
   .admin-layout,
@@ -106,6 +151,7 @@
     flex-direction: column;
   }
 
+  /* Bottom Navigation Bar Setup */
   .sidebar,
   .admin-sidebar,
   .tech-sidebar {
@@ -122,6 +168,7 @@
     box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
   }
 
+  /* Hide Desktop Elements */
   .sidebar-logo,
   .admin-logo,
   .tech-sidebar-logo,
@@ -131,6 +178,7 @@
     display: none !important;
   }
 
+  /* Horizontal Nav Links */
   .sidebar-nav,
   .admin-sidebar-nav,
   .tech-sidebar-nav {
@@ -149,6 +197,7 @@
     border-radius: 8px;
   }
 
+  /* Push Main Content Up */
   .main-area,
   .admin-main,
   .tech-main-area {
@@ -156,6 +205,7 @@
     padding-bottom: 80px;
   }
 
+  /* Header adjustments */
   .topbar,
   .admin-header,
   .tech-topbar {
@@ -175,10 +225,8 @@
     padding: 15px 20px;
   }
 
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
+  /* Stack Grids */
+  .stats-grid,
   .middle-grid {
     grid-template-columns: 1fr;
   }
@@ -187,6 +235,7 @@
     width: calc(50% - 10px);
   }
 
+  /* Ensure horizontal scrolling for tables/cards */
   .panel,
   .task-section,
   .track-card,
@@ -198,17 +247,5 @@
   .track-footer {
     flex-direction: column;
     gap: 10px;
-  }
-}
-@media (max-width: 480px) {
-  .nav-item,
-  .tech-nav-item {
-    flex-direction: column;
-    gap: 4px;
-    padding: 8px 4px;
-    font-size: 11px;
-    text-align: center;
-    justify-content: center;
-    border-radius: 8px;
   }
 }

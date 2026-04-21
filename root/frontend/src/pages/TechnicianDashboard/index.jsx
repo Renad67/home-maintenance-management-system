@@ -23,8 +23,9 @@ export default function TechnicianDashboard() {
   const [completedTasks, setCompletedTasks] = useState([]);
   const [myReviews, setMyReviews] = useState([]);
 
-  // Store all proposal form data here
+  // Store all proposal form data and errors here
   const [proposalForms, setProposalForms] = useState({});
+  const [proposalErrors, setProposalErrors] = useState({}); // 🔥 NEW: Track errors per task
 
   const fetchAllData = useCallback(async (tech) => {
     try {
@@ -80,6 +81,9 @@ export default function TechnicianDashboard() {
   };
 
   const handleFormChange = (taskId, field, value) => {
+    // Clear the error for this specific task when they start typing again
+    setProposalErrors((prev) => ({ ...prev, [taskId]: "" }));
+
     setProposalForms((prev) => ({
       ...prev,
       [taskId]: {
@@ -91,28 +95,47 @@ export default function TechnicianDashboard() {
 
   const sendProposal = async (taskId) => {
     const form = proposalForms[taskId];
-    if (!form || !form.diag || !form.parts || !form.labor || !form.visitDate) {
-      return alert(
-        "Please fill out all fields (Diagnosis, Parts, Labor, and Date)!",
-      );
+
+    // 🔥 NEW: Check for errors and set the professional message instead of an alert
+    if (
+      !form ||
+      !form.diag ||
+      !form.parts ||
+      !form.labor ||
+      !form.date1 ||
+      !form.date2
+    ) {
+      setProposalErrors((prev) => ({
+        ...prev,
+        [taskId]:
+          "Please fill out all fields (Diagnosis, Parts, Labor, and both Dates)!",
+      }));
+      return;
     }
+
     try {
       await submitProposal(taskId, {
         diagnosis: form.diag,
         spareParts: form.parts,
         labor: form.labor,
-        visitDate: form.visitDate,
+        date1: form.date1,
+        date2: form.date2,
       });
 
+      // Clear the form and any errors on success
       setProposalForms((prev) => ({
         ...prev,
-        [taskId]: { diag: "", parts: "", labor: "", visitDate: "" },
+        [taskId]: { diag: "", parts: "", labor: "", date1: "", date2: "" },
       }));
+      setProposalErrors((prev) => ({ ...prev, [taskId]: "" }));
 
       fetchAllData(user);
     } catch (err) {
       console.error(err);
-      alert("Failed to send proposal. Check backend console.");
+      setProposalErrors((prev) => ({
+        ...prev,
+        [taskId]: "Failed to send proposal. Please try again.",
+      }));
     }
   };
 
@@ -323,6 +346,8 @@ export default function TechnicianDashboard() {
                         diag: "",
                         parts: "",
                         labor: "",
+                        date1: "",
+                        date2: "",
                       };
 
                       return (
@@ -349,12 +374,21 @@ export default function TechnicianDashboard() {
                             <p>
                               Device: {task.brand_name} {task.category_name}
                             </p>
-                            <p className="no-margin">
+                            {/* Removed 'no-margin' from Customer if a date exists below it */}
+                            <p className={task.visit_date ? "" : "no-margin"}>
                               Customer: {task.customer_name}{" "}
                               {task.customer_phone
                                 ? `(${task.customer_phone})`
                                 : ""}
                             </p>
+
+                            {/* 🔥 NEW: Show the chosen visit date if it exists 🔥 */}
+                            {task.visit_date && (
+                              <p className="scheduled-date no-margin">
+                                📅 Scheduled Visit:{" "}
+                                {task.visit_date.split("T")[0]}
+                              </p>
+                            )}
                           </div>
 
                           {/* THE NEW PROPOSAL FORM */}
@@ -363,10 +397,18 @@ export default function TechnicianDashboard() {
                               <h4 className="proposal-form-title">
                                 📝 Visit Report & Cost Proposal
                               </h4>
+
+                              {/* 🔥 NEW PROFESSIONAL ERROR MESSAGE 🔥 */}
+                              {proposalErrors[task.requestid] && (
+                                <div className="proposal-error-box">
+                                  ⚠️ {proposalErrors[task.requestid]}
+                                </div>
+                              )}
+
                               <textarea
                                 className="proposal-textarea"
                                 placeholder="Diagnosis Note (e.g. Compressor requires replacement)"
-                                value={form.diag}
+                                value={form.diag || ""}
                                 onChange={(e) =>
                                   handleFormChange(
                                     task.requestid,
@@ -375,12 +417,14 @@ export default function TechnicianDashboard() {
                                   )
                                 }
                               />
+
+                              {/* Row 1: Costs */}
                               <div className="proposal-inputs-row">
                                 <input
                                   className="proposal-input"
                                   type="number"
                                   placeholder="Spare Parts Cost (EGP)"
-                                  value={form.parts}
+                                  value={form.parts || ""}
                                   onChange={(e) =>
                                     handleFormChange(
                                       task.requestid,
@@ -393,7 +437,7 @@ export default function TechnicianDashboard() {
                                   className="proposal-input"
                                   type="number"
                                   placeholder="Labor Cost (EGP)"
-                                  value={form.labor}
+                                  value={form.labor || ""}
                                   onChange={(e) =>
                                     handleFormChange(
                                       task.requestid,
@@ -402,19 +446,46 @@ export default function TechnicianDashboard() {
                                     )
                                   }
                                 />
-                                <input
-                                  className="proposal-input"
-                                  type="date"
-                                  value={form.visitDate || ""}
-                                  onChange={(e) =>
-                                    handleFormChange(
-                                      task.requestid,
-                                      "visitDate",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
                               </div>
+
+                              {/* Row 2: Dates */}
+                              <div className="proposal-dates-row">
+                                <div className="proposal-date-col">
+                                  <label className="proposal-label">
+                                    Option 1:
+                                  </label>
+                                  <input
+                                    className="proposal-input"
+                                    type="date"
+                                    value={form.date1 || ""}
+                                    onChange={(e) =>
+                                      handleFormChange(
+                                        task.requestid,
+                                        "date1",
+                                        e.target.value,
+                                      )
+                                    }
+                                  />
+                                </div>
+                                <div className="proposal-date-col">
+                                  <label className="proposal-label">
+                                    Option 2:
+                                  </label>
+                                  <input
+                                    className="proposal-input"
+                                    type="date"
+                                    value={form.date2 || ""}
+                                    onChange={(e) =>
+                                      handleFormChange(
+                                        task.requestid,
+                                        "date2",
+                                        e.target.value,
+                                      )
+                                    }
+                                  />
+                                </div>
+                              </div>
+
                               <button
                                 className="btn-submit-proposal"
                                 onClick={() => sendProposal(task.requestid)}

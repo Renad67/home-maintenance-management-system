@@ -899,6 +899,31 @@
   font-style: italic;
 }
 
+/* --- Date Selection Box --- */
+.date-selection-box {
+  margin-bottom: 15px;
+  background-color: #ffffff;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.date-selection-title {
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.date-radio-label {
+  cursor: pointer;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.date-radio-second {
+  margin-left: 15px;
+}
+
 @media (max-width: 1024px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);

@@ -388,7 +388,26 @@
 .proposal-inputs-row {
   display: flex;
   gap: 10px;
+  margin-bottom: 10px; /* Reduced gap to sit nicely above dates */
+}
+
+.proposal-dates-row {
+  display: flex;
+  gap: 10px;
   margin-bottom: 15px;
+}
+
+.proposal-date-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.proposal-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4b5563;
 }
 
 .proposal-input {
@@ -397,6 +416,8 @@
   border-radius: 6px;
   border: 1px solid #d1d5db;
   color: #374151;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .btn-submit-proposal {
@@ -520,6 +541,26 @@
   justify-content: space-between;
   font-size: 12px;
   color: #9ca3af;
+}
+
+/* --- NEW: Professional Error Box for Proposals --- */
+.proposal-error-box {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  border: 1px solid #fca5a5;
+}
+/* --- Scheduled Date for Active Tasks --- */
+.scheduled-date {
+  color: #2f6bff;
+  font-weight: 600;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed #e5e7eb;
 }
 
 @media (max-width: 1024px) {

@@ -357,7 +357,8 @@ export default function AdminDashboard() {
                     <th>Problem</th>
                     <th>Technician</th>
                     <th>Status</th>
-                    {/* 🔥 THE NEW REJECTION REASON COLUMN 🔥 */}
+                    {/* 🔥 ADDED DATE HEADER HERE 🔥 */}
+                    <th>Dates</th>
                     <th>Rejection Reason</th>
                   </tr>
                 </thead>
@@ -396,7 +397,20 @@ export default function AdminDashboard() {
                           status={req.status || req.status_name || "pending"}
                         />
                       </td>
-                      {/* 🔥 THE NEW REJECTION REASON DATA CELL 🔥 */}
+
+                      <td className="admin-dates-cell">
+                        <div className="text-gray proposed-dates-text">
+                          Proposed:{" "}
+                          {req.proposed_date_1
+                            ? `${req.proposed_date_1.split("T")[0]} / ${req.proposed_date_2.split("T")[0]}`
+                            : "—"}
+                        </div>
+                        <div className="confirmed-date-text">
+                          Confirmed:{" "}
+                          {req.visit_date?.split("T")[0] || "Pending"}
+                        </div>
+                      </td>
+
                       <td
                         className={
                           req.rejection_reason

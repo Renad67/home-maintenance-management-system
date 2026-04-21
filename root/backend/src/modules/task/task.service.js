@@ -41,7 +41,7 @@ export const updateTaskStatus = async (requestId, technicianId, statusId) => {
 export const getPendingTasks = async (technicianId) => {
   const [techRows] = await pool.query(
     "SELECT specialty FROM technicians WHERE technician_id = ?",
-    [technicianId]
+    [technicianId],
   );
 
   if (techRows.length === 0) {
@@ -52,11 +52,20 @@ export const getPendingTasks = async (technicianId) => {
 
   let targetCategory = "";
   switch (techSpecialty) {
-    case "Air Conditioner": targetCategory = "AC"; break;
-    case "TV Repair":       targetCategory = "TV"; break;
-    case "Washing Machine": targetCategory = "WashingMachine"; break;
-    case "Oven Repair":     targetCategory = "Cooker"; break;
-    default:                targetCategory = techSpecialty; // Refrigerator & Dishwasher match exactly
+    case "Air Conditioner":
+      targetCategory = "AC";
+      break;
+    case "TV Repair":
+      targetCategory = "TV";
+      break;
+    case "Washing Machine":
+      targetCategory = "WashingMachine";
+      break;
+    case "Oven Repair":
+      targetCategory = "Cooker";
+      break;
+    default:
+      targetCategory = techSpecialty; // Refrigerator & Dishwasher match exactly
   }
 
   const [rows] = await pool.query(
@@ -71,9 +80,9 @@ export const getPendingTasks = async (technicianId) => {
        AND r.technician_id IS NULL 
        AND c.category_name = ?
      ORDER BY r.created_at ASC`,
-    [targetCategory]
+    [targetCategory],
   );
-  
+
   return rows;
 };
 
@@ -120,25 +129,36 @@ export const claimTask = async (requestId, technicianId) => {
   }
 };
 
+// 1. Update submitProposal to save both dates
 export const submitProposal = async (requestId, proposalData) => {
-  const { diagnosis, spareParts, labor , visitDate} = proposalData;
+  const { diagnosis, spareParts, labor, date1, date2 } = proposalData;
   await pool.query(
     `UPDATE requests 
-         SET diagnosis_note = ?, spare_parts_cost = ?, labor_cost = ?, status_id = 9 
-         WHERE requestid = ?`,
-    [diagnosis, spareParts, labor, requestId],
+     SET diagnosis_note = ?, spare_parts_cost = ?, labor_cost = ?, proposed_date_1 = ?, proposed_date_2 = ?, status_id = 9 
+     WHERE requestid = ?`,
+    [diagnosis, spareParts, labor, date1, date2, requestId],
   );
   return { success: true };
 };
 
-export const respondToProposal = async (requestId, decision, reason) => {
-  // 3 = In Progress (Customer Accepted), 6 = Rejected (Customer Rejected)
-  const newStatus = decision === "accept" ? 3 : 6;
-  await pool.query(
-    `UPDATE requests 
-         SET status_id = ?, rejection_reason = ? 
-         WHERE requestid = ?`,
-    [newStatus, reason, requestId],
-  );
+export const respondToProposal = async (
+  requestId,
+  decision,
+  reason,
+  chosenDate,
+) => {
+  if (decision === "accept") {
+    await pool.query(
+      `UPDATE requests SET status_id = 3, visit_date = ? WHERE requestid = ?`,
+      [chosenDate, requestId],
+    );
+  } else {
+    await pool.query(
+      `UPDATE requests SET status_id = 6, rejection_reason = ? WHERE requestid = ?`,
+      [reason, requestId],
+    );
+  }
   return { success: true };
 };
+
+

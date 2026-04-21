@@ -471,6 +471,18 @@ td {
   font-size: 13px;
 }
 
+/* --- Admin Table Dates --- */
+.proposed-dates-text {
+  font-size: 11px;
+}
+
+.confirmed-date-text {
+  color: #2f6bff;
+  font-weight: bold;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
 @media (max-width: 1024px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);

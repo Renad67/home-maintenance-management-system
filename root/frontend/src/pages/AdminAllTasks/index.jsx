@@ -64,6 +64,7 @@ export default function AdminAllTasks() {
                     <th>Technician</th>
                     <th>Location</th>
                     <th>Status</th>
+                    <th>Dates</th>
                     <th>Diagnosis</th>
                     <th>Parts Cost</th>
                     <th>Labor Cost</th>
@@ -74,15 +75,17 @@ export default function AdminAllTasks() {
                   {requests.map((req) => (
                     <tr key={req.requestid}>
                       <td>#{req.requestid}</td>
-                      <td className="user-cell">
-                        <div className="mini-avatar" />
-                        {
-                          (
-                            req.user_name ||
-                            req.customer_name ||
-                            "Customer"
-                          ).split(" ")[0]
-                        }
+                      <td>
+                        <div className="user-cell">
+                          <div className="mini-avatar" />
+                          {
+                            (
+                              req.user_name ||
+                              req.customer_name ||
+                              "Customer"
+                            ).split(" ")[0]
+                          }
+                        </div>
                       </td>
                       <td className="fw-500">
                         {req.problem
@@ -105,6 +108,19 @@ export default function AdminAllTasks() {
                         <StatusPill
                           status={req.status || req.status_name || "pending"}
                         />
+                      </td>
+
+                      <td className="admin-dates-cell">
+                        <div className="text-gray proposed-dates-text">
+                          Proposed:{" "}
+                          {req.proposed_date_1
+                            ? `${req.proposed_date_1.split("T")[0]} / ${req.proposed_date_2.split("T")[0]}`
+                            : "—"}
+                        </div>
+                        <div className="confirmed-date-text">
+                          Confirmed:{" "}
+                          {req.visit_date?.split("T")[0] || "Pending"}
+                        </div>
                       </td>
 
                       <td
