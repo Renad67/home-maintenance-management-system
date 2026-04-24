@@ -4,14 +4,14 @@ import { AppError } from "../../common/utils/response/error.response.js";
 export const getAssignedTasks = async (technicianId) => {
   const [tasks] = await pool.query(
     `SELECT r.*, u.name as customer_name, u.phone as customer_phone,
-                c.category_name, b.brand_name
-         FROM requests r
-         JOIN users u ON r.user_id = u.userid
-         JOIN devices d ON r.device_id = d.device_id
-         JOIN categories c ON d.category_id = c.category_id
-         JOIN brands b ON d.brand_id = b.brand_id
-         WHERE r.technician_id = ?
-         ORDER BY r.created_at DESC`,
+            c.category_name, b.brand_name
+     FROM requests r
+     JOIN users u ON r.user_id = u.userid
+     JOIN devices d ON r.device_id = d.device_id
+     JOIN categories c ON d.category_id = c.category_id
+     JOIN brands b ON d.brand_id = b.brand_id
+     WHERE r.technician_id = ?
+     ORDER BY r.created_at DESC`,
     [technicianId],
   );
   return tasks;
@@ -65,7 +65,7 @@ export const getPendingTasks = async (technicianId) => {
       targetCategory = "Cooker";
       break;
     default:
-      targetCategory = techSpecialty; // Refrigerator & Dishwasher match exactly
+      targetCategory = techSpecialty;
   }
 
   const [rows] = await pool.query(
@@ -92,11 +92,9 @@ export const claimTask = async (requestId, technicianId) => {
   try {
     await connection.beginTransaction();
 
+    // 1. Lock the row and check if the task is actually available
     const [rows] = await connection.query(
-      `SELECT requestid, status_id, technician_id
-             FROM requests
-             WHERE requestid = ?
-             FOR UPDATE`,
+      `SELECT requestid, status_id, technician_id FROM requests WHERE requestid = ? FOR UPDATE`,
       [requestId],
     );
 
@@ -106,20 +104,21 @@ export const claimTask = async (requestId, technicianId) => {
 
     const request = rows[0];
 
+    // Prevent double-booking if another tech clicked it at the exact same millisecond
     if (request.status_id !== 1 || request.technician_id !== null) {
       throw new AppError(
-        "Task is no longer available — it was just claimed by another technician",
+        "Task is no longer available — it was just claimed.",
         400,
       );
     }
 
+    // 2. Assign the task directly to the technician
     await connection.query(
       "UPDATE requests SET technician_id = ?, status_id = 2 WHERE requestid = ?",
       [technicianId, requestId],
     );
 
     await connection.commit();
-
     return { requestId, technicianId, newStatusId: 2 };
   } catch (error) {
     await connection.rollback();
@@ -129,7 +128,7 @@ export const claimTask = async (requestId, technicianId) => {
   }
 };
 
-// 1. Update submitProposal to save both dates
+// Update submitProposal to save both dates
 export const submitProposal = async (requestId, proposalData) => {
   const { diagnosis, spareParts, labor, date1, date2 } = proposalData;
   await pool.query(
@@ -161,4 +160,38 @@ export const respondToProposal = async (
   return { success: true };
 };
 
+export const rejectTask = async (requestId, reason) => {
+  await pool.query(
+    `UPDATE requests 
+     SET technician_id = NULL, status_id = 1, rejection_reason = ? 
+     WHERE requestid = ?`,
+    [reason || "Rejected by technician", requestId],
+  );
+  return { success: true };
+};
 
+export const completeTask = async (requestId) => {
+  // Assuming status_id 4 or 5 is your 'Completed' status
+  await pool.query(`UPDATE requests SET status_id = 5 WHERE requestid = ?`, [
+    requestId,
+  ]);
+  return { success: true };
+};
+
+export const cancelTask = async (requestId) => {
+  await pool.query(`UPDATE requests SET status_id = 6 WHERE requestid = ?`, [
+    requestId,
+  ]);
+  return { success: true };
+};
+
+export const completeTaskWithReport = async (requestId, reportData) => {
+  const { diagnosis, spareParts, labor } = reportData;
+  await pool.query(
+    `UPDATE requests 
+     SET diagnosis_note = ?, spare_parts_cost = ?, labor_cost = ?, status_id = 4 
+     WHERE requestid = ?`,
+    [diagnosis, spareParts, labor, requestId],
+  );
+  return { success: true };
+};

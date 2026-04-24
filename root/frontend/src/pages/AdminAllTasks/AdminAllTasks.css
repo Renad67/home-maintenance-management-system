@@ -78,7 +78,7 @@
 }
 
 /* =========================================
-   4. SPECIFIC DATA STYLES (DATES & TECHS)
+4. SPECIFIC DATA STYLES (DATES & TECHS)
 ========================================= */
 .tech-assigned {
   color: #5c88ff;
@@ -104,6 +104,12 @@
   font-size: 12px;
   margin-top: 4px;
 }
+
+.id-text-urgent {
+  color: #EF4444; 
+  font-weight: 600;
+}
+
 
 /* =========================================
    5. RESPONSIVE DESIGN (MEDIA QUERIES)

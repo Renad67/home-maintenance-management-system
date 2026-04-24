@@ -31,6 +31,19 @@ export default function AdminAllTasks() {
       setLoading(false);
     }
   };
+  // 1. Helper function to check if older than 24 hours
+  const isOverdue = (createdAt) => {
+    if (!createdAt) return false;
+    const hoursDifference = Math.abs(new Date() - new Date(createdAt)) / 36e5;
+    return hoursDifference > 24;
+  };
+
+  // 2. Find tasks older than 24 hours that are still pending
+  const overdueTasks = requests.filter((req) => {
+    if (req.status_id !== 1 && req.status?.toLowerCase() !== "pending")
+      return false;
+    return isOverdue(req.created_at);
+  });
 
   return (
     <div className="admin-layout">
@@ -46,6 +59,40 @@ export default function AdminAllTasks() {
 
         <div className="admin-content padded-content">
           <h2 className="page-title left-title">All Maintenance Requests</h2>
+
+          {overdueTasks.length > 0 && (
+            <div
+              style={{
+                backgroundColor: "#FEF2F2",
+                borderLeft: "5px solid #EF4444",
+                padding: "16px 20px",
+                borderRadius: "8px",
+                marginBottom: "24px",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              }}
+            >
+              <span style={{ fontSize: "24px" }}>⚠️</span>
+              <div>
+                <h4
+                  style={{
+                    margin: "0 0 4px 0",
+                    color: "#991B1B",
+                    fontSize: "16px",
+                  }}
+                >
+                  Urgent: Unclaimed Tasks Detected
+                </h4>
+                <p style={{ margin: 0, color: "#B91C1C", fontSize: "14px" }}>
+                  There are <strong>{overdueTasks.length}</strong> request(s)
+                  that have been waiting for over 24 hours without being claimed
+                  by a technician. Please reassign them immediately.
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="panel recent-requests-panel scrollable-panel">
             {loading ? (
@@ -74,7 +121,24 @@ export default function AdminAllTasks() {
                 <tbody>
                   {requests.map((req) => (
                     <tr key={req.requestid}>
-                      <td>#{req.requestid}</td>
+                      <td
+                        className={
+                          req.status_id === 1 && isOverdue(req.created_at)
+                            ? "id-text-urgent"
+                            : "id-text-normal"
+                        }
+                      >
+                        #{req.requestid}
+                        {/* 🔥 2. Added a space and margin so it doesn't squish! 🔥 */}
+                        {req.status_id === 1 && isOverdue(req.created_at) && (
+                          <span
+                            className="urgent-badge"
+                            style={{ marginLeft: "5px" }}
+                          >
+                           OVERDUE
+                          </span>
+                        )}
+                      </td>
                       <td>
                         <div className="user-cell">
                           <div className="mini-avatar" />

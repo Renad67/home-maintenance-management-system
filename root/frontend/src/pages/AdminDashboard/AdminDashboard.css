@@ -471,6 +471,11 @@ td {
   font-size: 13px;
 }
 
+.id-text-urgent {
+  color: #EF4444; 
+  font-weight: 600;
+}
+
 /* --- Admin Table Dates --- */
 .proposed-dates-text {
   font-size: 11px;

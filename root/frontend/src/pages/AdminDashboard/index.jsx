@@ -74,7 +74,21 @@ export default function AdminDashboard() {
 
   const recentRequests = requests.slice(0, 5);
   const latestFeedback = reviews.slice(0, 3);
+  // Helper function to check if a specific date is older than 24 hours
+  const isOverdue = (createdAt) => {
+    if (!createdAt) return false;
+    const hoursDifference = Math.abs(new Date() - new Date(createdAt)) / 36e5;
+    return hoursDifference > 24;
+  };
+  const overdueTasks = requests.filter((req) => {
+    if (req.status_id !== 1 && req.status?.toLowerCase() !== "pending")
+      return false;
+    const taskDate = new Date(req.created_at);
+    const now = new Date();
+    const hoursDifference = Math.abs(now - taskDate) / 36e5; // Convert milliseconds to hours
 
+    return hoursDifference > 24;
+  });
   // 🔥 ADVANCED TECHNICIAN RANKING LOGIC (Matches the Performance Page!) 🔥
   const techMap = {};
   (requests || []).forEach((req) => {
@@ -213,6 +227,40 @@ export default function AdminDashboard() {
 
         <div className="admin-content">
           <h2 className="page-title">Dashboard</h2>
+
+          {overdueTasks.length > 0 && (
+            <div
+              style={{
+                backgroundColor: "#FEF2F2",
+                borderLeft: "5px solid #EF4444",
+                padding: "16px 20px",
+                borderRadius: "8px",
+                marginBottom: "24px",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              }}
+            >
+              <span style={{ fontSize: "24px" }}>⚠️</span>
+              <div>
+                <h4
+                  style={{
+                    margin: "0 0 4px 0",
+                    color: "#991B1B",
+                    fontSize: "16px",
+                  }}
+                >
+                  Urgent: Unclaimed Tasks Detected
+                </h4>
+                <p style={{ margin: 0, color: "#B91C1C", fontSize: "14px" }}>
+                  There are <strong>{overdueTasks.length}</strong> request(s)
+                  that have been waiting for over 24 hours without being claimed
+                  by a technician. Please reassign them immediately.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* STATS */}
           <div className="stats-grid">
@@ -365,7 +413,24 @@ export default function AdminDashboard() {
                 <tbody>
                   {recentRequests.map((req) => (
                     <tr key={req.requestid}>
-                      <td>#{req.requestid}</td>
+                      <td
+                        className={
+                          req.status_id === 1 && isOverdue(req.created_at)
+                            ? "id-text-urgent"
+                            : "id-text-normal"
+                        }
+                      >
+                        #{req.requestid}
+                        {/* 🔥 2. Added a space and margin so it doesn't squish! 🔥 */}
+                        {req.status_id === 1 && isOverdue(req.created_at) && (
+                          <span
+                            className="urgent-badge"
+                            style={{ marginLeft: "5px" }}
+                          >
+                            OVERDUE
+                          </span>
+                        )}
+                      </td>{" "}
                       <td className="user-cell">
                         <div className="mini-avatar" />
                         {
@@ -397,7 +462,6 @@ export default function AdminDashboard() {
                           status={req.status || req.status_name || "pending"}
                         />
                       </td>
-
                       <td className="admin-dates-cell">
                         <div className="text-gray proposed-dates-text">
                           Proposed:{" "}
@@ -410,7 +474,6 @@ export default function AdminDashboard() {
                           {req.visit_date?.split("T")[0] || "Pending"}
                         </div>
                       </td>
-
                       <td
                         className={
                           req.rejection_reason

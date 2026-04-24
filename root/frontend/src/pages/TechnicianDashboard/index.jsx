@@ -8,6 +8,7 @@ import {
   claimTask,
   submitProposal,
   updateTaskStatus,
+  completeTaskWithReport,
 } from "../../services/task.service.js";
 import StatusPill from "../../components/StatusPill.jsx";
 import "./TechnicianDashboard.css";
@@ -25,7 +26,9 @@ export default function TechnicianDashboard() {
 
   // Store all proposal form data and errors here
   const [proposalForms, setProposalForms] = useState({});
-  const [proposalErrors, setProposalErrors] = useState({}); // 🔥 NEW: Track errors per task
+  const [proposalErrors, setProposalErrors] = useState({});
+  const [formModes, setFormModes] = useState({});
+  const [errorMessage, setErrorMessage] = useState("");
 
   const fetchAllData = useCallback(async (tech) => {
     try {
@@ -67,12 +70,19 @@ export default function TechnicianDashboard() {
     }
   }, [navigate, fetchAllData]);
 
-  const handleClaim = async (requestId) => {
+  const handleAcceptTask = async (requestId) => {
     try {
+      setErrorMessage(""); // Clear old errors
       await claimTask(requestId, user.id);
       fetchAllData(user);
     } catch (error) {
       console.error("Failed to claim task", error);
+      // Catches the daily limit error from backend
+      setErrorMessage(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to accept task.",
+      );
     }
   };
 
@@ -96,7 +106,7 @@ export default function TechnicianDashboard() {
   const sendProposal = async (taskId) => {
     const form = proposalForms[taskId];
 
-    // 🔥 NEW: Check for errors and set the professional message instead of an alert
+    // Check for errors and set the professional message instead of an alert
     if (
       !form ||
       !form.diag ||
@@ -128,6 +138,7 @@ export default function TechnicianDashboard() {
         [taskId]: { diag: "", parts: "", labor: "", date1: "", date2: "" },
       }));
       setProposalErrors((prev) => ({ ...prev, [taskId]: "" }));
+      setFormModes((prev) => ({ ...prev, [taskId]: null }));
 
       fetchAllData(user);
     } catch (err) {
@@ -135,6 +146,41 @@ export default function TechnicianDashboard() {
       setProposalErrors((prev) => ({
         ...prev,
         [taskId]: "Failed to send proposal. Please try again.",
+      }));
+    }
+  };
+
+  const sendFinalReport = async (taskId) => {
+    const form = proposalForms[taskId];
+
+    if (!form || !form.diag || !form.parts || !form.labor) {
+      setProposalErrors((prev) => ({
+        ...prev,
+        [taskId]: "Please fill out Diagnosis, Parts, and Labor costs!",
+      }));
+      return;
+    }
+
+    try {
+      await completeTaskWithReport(taskId, {
+        diagnosis: form.diag,
+        spareParts: form.parts,
+        labor: form.labor,
+      });
+
+      setProposalForms((prev) => ({
+        ...prev,
+        [taskId]: { diag: "", parts: "", labor: "", date1: "", date2: "" },
+      }));
+      setProposalErrors((prev) => ({ ...prev, [taskId]: "" }));
+      setFormModes((prev) => ({ ...prev, [taskId]: null }));
+
+      fetchAllData(user);
+    } catch (err) {
+      console.error(err);
+      setProposalErrors((prev) => ({
+        ...prev,
+        [taskId]: "Failed to submit final report. Please try again.",
       }));
     }
   };
@@ -147,6 +193,18 @@ export default function TechnicianDashboard() {
       console.error("Failed to complete task", error);
     }
   };
+
+  const isOverdue = (createdAt) => {
+    if (!createdAt) return false;
+    const hoursDifference = Math.abs(new Date() - new Date(createdAt)) / 36e5;
+    return hoursDifference > 24;
+  };
+
+  const overdueTasks = pendingTasks.filter((req) => {
+    if (req.status_id !== 1 && req.status?.toLowerCase() !== "pending")
+      return false;
+    return isOverdue(req.created_at);
+  });
 
   if (!user) return null;
 
@@ -273,6 +331,59 @@ export default function TechnicianDashboard() {
           {/* --- TASKS VIEW --- */}
           {activeTab === "tasks" && (
             <>
+              {overdueTasks.length > 0 && (
+                <div
+                  style={{
+                    backgroundColor: "#FEF2F2",
+                    borderLeft: "5px solid #EF4444",
+                    padding: "16px 20px",
+                    borderRadius: "8px",
+                    marginBottom: "24px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <span style={{ fontSize: "24px" }}>⚠️</span>
+                  <div>
+                    <h4
+                      style={{
+                        margin: "0 0 4px 0",
+                        color: "#991B1B",
+                        fontSize: "16px",
+                      }}
+                    >
+                      Urgent: Unclaimed Tasks Detected
+                    </h4>
+                    <p
+                      style={{ margin: 0, color: "#B91C1C", fontSize: "14px" }}
+                    >
+                      There are <strong>{overdueTasks.length}</strong>{" "}
+                      request(s) that have been waiting for over 24 hours
+                      without being claimed by a technician. Please reassign
+                      them immediately.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* 🔥 Professional Error Message Box (For the 5-task limit) 🔥 */}
+              {errorMessage && (
+                <div
+                  style={{
+                    backgroundColor: "#FEE2E2",
+                    color: "#991B1B",
+                    padding: "12px",
+                    borderRadius: "6px",
+                    marginBottom: "20px",
+                    border: "1px solid #FCA5A5",
+                  }}
+                >
+                  <strong>Error:</strong> {errorMessage}
+                </div>
+              )}
+
               {/* 1. THE POOL */}
               <div className="task-section">
                 <div className="task-header">
@@ -288,36 +399,65 @@ export default function TechnicianDashboard() {
                   </div>
                 ) : (
                   <div className="task-list">
-                    {pendingTasks.map((task) => (
-                      <div key={task.requestid} className="pending-task-card">
-                        <div className="task-info">
-                          <div className="task-title">{task.problem}</div>
-                          <div className="task-details">
-                            #{task.requestid} — {task.address}, {task.district}
-                          </div>
-                          <div className="task-details">
-                            Device: {task.brand_name} {task.category_name}
-                          </div>
-                          <div className="task-customer">
-                            Customer: {task.customer_name}{" "}
-                            {task.customer_phone
-                              ? `(${task.customer_phone})`
-                              : ""}
-                            <StatusPill status={task.status || "PENDING"} />
-                          </div>
+                    {pendingTasks.map((req) => (
+                      <div className="track-card" key={req.requestid}>
+                        <div className="track-card-header">
+                          <span className="req-id">
+                            ID: #{req.requestid}
+                            {/* 🔥 The Red Overdue Warning Badge 🔥 */}
+                            {isOverdue(req.created_at) && (
+                              <span
+                                style={{
+                                  backgroundColor: "#EF4444",
+                                  color: "white",
+                                  fontSize: "10px",
+                                  fontWeight: "bold",
+                                  padding: "3px 6px",
+                                  borderRadius: "4px",
+                                  marginLeft: "8px",
+                                  verticalAlign: "middle",
+                                }}
+                              >
+                                OVERDUE
+                              </span>
+                            )}
+                          </span>
                         </div>
-                        <div className="task-actions">
+
+                        <h3>{req.problem}</h3>
+                        <p>
+                          Device: {req.brand_name} {req.category_name}
+                        </p>
+                        <p>Customer: {req.customer_name}</p>
+
+                        {/* 🔥 The Customer's Preferred Visit Date 🔥 */}
+                        <p
+                          style={{
+                            fontWeight: "600",
+                            color: "#4B5563",
+                            marginTop: "6px",
+                            backgroundColor: "#F3F4F6",
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            display: "inline-block",
+                          }}
+                        >
+                          📅 Preferred Date:{" "}
+                          {req.preferred_date
+                            ? req.preferred_date.split("T")[0]
+                            : "Not Specified"}
+                        </p>
+
+                        <div
+                          className="flex-gap-10"
+                          style={{ marginTop: "12px" }}
+                        >
                           <button
-                            className="btn-accept"
-                            onClick={() => handleClaim(task.requestid)}
+                            onClick={() => handleAcceptTask(req.requestid)}
+                            className="btn-accept-proposal"
+                            style={{ padding: "8px 24px" }}
                           >
                             ✓ Accept
-                          </button>
-                          <button
-                            className="btn-reject"
-                            onClick={() => handleReject(task.requestid)}
-                          >
-                            ✕ Reject
                           </button>
                         </div>
                       </div>
@@ -374,7 +514,7 @@ export default function TechnicianDashboard() {
                             <p>
                               Device: {task.brand_name} {task.category_name}
                             </p>
-                            {/* Removed 'no-margin' from Customer if a date exists below it */}
+
                             <p className={task.visit_date ? "" : "no-margin"}>
                               Customer: {task.customer_name}{" "}
                               {task.customer_phone
@@ -382,7 +522,7 @@ export default function TechnicianDashboard() {
                                 : ""}
                             </p>
 
-                            {/* 🔥 NEW: Show the chosen visit date if it exists 🔥 */}
+                            {/* Show the chosen visit date if it exists */}
                             {task.visit_date && (
                               <p className="scheduled-date no-margin">
                                 📅 Scheduled Visit:{" "}
@@ -391,109 +531,249 @@ export default function TechnicianDashboard() {
                             )}
                           </div>
 
-                          {/* THE NEW PROPOSAL FORM */}
-                          {task.status_id === 2 && (
-                            <div className="proposal-form-container">
-                              <h4 className="proposal-form-title">
-                                📝 Visit Report & Cost Proposal
-                              </h4>
-
-                              {/* 🔥 NEW PROFESSIONAL ERROR MESSAGE 🔥 */}
-                              {proposalErrors[task.requestid] && (
-                                <div className="proposal-error-box">
-                                  ⚠️ {proposalErrors[task.requestid]}
-                                </div>
-                              )}
-
-                              <textarea
-                                className="proposal-textarea"
-                                placeholder="Diagnosis Note (e.g. Compressor requires replacement)"
-                                value={form.diag || ""}
-                                onChange={(e) =>
-                                  handleFormChange(
-                                    task.requestid,
-                                    "diag",
-                                    e.target.value,
-                                  )
-                                }
-                              />
-
-                              {/* Row 1: Costs */}
-                              <div className="proposal-inputs-row">
-                                <input
-                                  className="proposal-input"
-                                  type="number"
-                                  placeholder="Spare Parts Cost (EGP)"
-                                  value={form.parts || ""}
-                                  onChange={(e) =>
-                                    handleFormChange(
-                                      task.requestid,
-                                      "parts",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                                <input
-                                  className="proposal-input"
-                                  type="number"
-                                  placeholder="Labor Cost (EGP)"
-                                  value={form.labor || ""}
-                                  onChange={(e) =>
-                                    handleFormChange(
-                                      task.requestid,
-                                      "labor",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-
-                              {/* Row 2: Dates */}
-                              <div className="proposal-dates-row">
-                                <div className="proposal-date-col">
-                                  <label className="proposal-label">
-                                    Option 1:
-                                  </label>
-                                  <input
-                                    className="proposal-input"
-                                    type="date"
-                                    value={form.date1 || ""}
-                                    onChange={(e) =>
-                                      handleFormChange(
-                                        task.requestid,
-                                        "date1",
-                                        e.target.value,
-                                      )
-                                    }
-                                  />
-                                </div>
-                                <div className="proposal-date-col">
-                                  <label className="proposal-label">
-                                    Option 2:
-                                  </label>
-                                  <input
-                                    className="proposal-input"
-                                    type="date"
-                                    value={form.date2 || ""}
-                                    onChange={(e) =>
-                                      handleFormChange(
-                                        task.requestid,
-                                        "date2",
-                                        e.target.value,
-                                      )
-                                    }
-                                  />
-                                </div>
-                              </div>
-
-                              <button
-                                className="btn-submit-proposal"
-                                onClick={() => sendProposal(task.requestid)}
+                          {task.status_id === 2 &&
+                            !formModes[task.requestid] && (
+                              <div
+                                style={{
+                                  display: "flex",
+                                  gap: "10px",
+                                  marginTop: "15px",
+                                }}
                               >
-                                Submit Visit Report & Send to Customer
-                              </button>
-                            </div>
-                          )}
+                                <button
+                                  className="btn-finish-repair"
+                                  style={{
+                                    flex: 1,
+                                    padding: "8px 10px",
+                                    backgroundColor: "#10B981",
+                                    fontSize: "13px",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                  onClick={() =>
+                                    setFormModes((prev) => ({
+                                      ...prev,
+                                      [task.requestid]: "complete",
+                                    }))
+                                  }
+                                >
+                                  ✓ Finish Repair & Mark Complete
+                                </button>
+
+                                <button
+                                  className="btn-accept-proposal"
+                                  style={{
+                                    flex: 1,
+                                    padding: "8px 10px",
+                                    fontSize: "13px",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                  onClick={() =>
+                                    setFormModes((prev) => ({
+                                      ...prev,
+                                      [task.requestid]: "second_visit",
+                                    }))
+                                  }
+                                >
+                                  📅 Apply for Second Visit
+                                </button>
+                              </div>
+                            )}
+
+                          {task.status_id === 2 &&
+                            formModes[task.requestid] === "complete" && (
+                              <div
+                                className="proposal-form-container"
+                                style={{ borderLeft: "4px solid #10B981" }}
+                              >
+                                <h4 className="proposal-form-title">
+                                  📝 Final Visit Report (Job Completed)
+                                </h4>
+
+                                {proposalErrors[task.requestid] && (
+                                  <div className="proposal-error-box">
+                                    ⚠️ {proposalErrors[task.requestid]}
+                                  </div>
+                                )}
+
+                                <textarea
+                                  className="proposal-textarea"
+                                  placeholder="Diagnosis Note (What did you fix?)"
+                                  value={form.diag || ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      task.requestid,
+                                      "diag",
+                                      e.target.value,
+                                    )
+                                  }
+                                />
+                                <div className="proposal-inputs-row">
+                                  <input
+                                    className="proposal-input"
+                                    type="number"
+                                    placeholder="Spare Parts Cost (EGP)"
+                                    value={form.parts || ""}
+                                    onChange={(e) =>
+                                      handleFormChange(
+                                        task.requestid,
+                                        "parts",
+                                        e.target.value,
+                                      )
+                                    }
+                                  />
+                                  <input
+                                    className="proposal-input"
+                                    type="number"
+                                    placeholder="Labor Cost (EGP)"
+                                    value={form.labor || ""}
+                                    onChange={(e) =>
+                                      handleFormChange(
+                                        task.requestid,
+                                        "labor",
+                                        e.target.value,
+                                      )
+                                    }
+                                  />
+                                </div>
+
+                                <div className="flex-gap-10">
+                                  <button
+                                    className="btn-submit-proposal"
+                                    style={{ backgroundColor: "#10B981" }}
+                                    onClick={() =>
+                                      sendFinalReport(task.requestid)
+                                    }
+                                  >
+                                    Submit Report & Complete Task
+                                  </button>
+                                  <button
+                                    className="btn-reject-proposal"
+                                    onClick={() =>
+                                      setFormModes((prev) => ({
+                                        ...prev,
+                                        [task.requestid]: null,
+                                      }))
+                                    }
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+                          {/* 🔥 NEW WORKFLOW: Step 2B - The "Second Visit" Form (WITH DATES) 🔥 */}
+                          {task.status_id === 2 &&
+                            formModes[task.requestid] === "second_visit" && (
+                              <div className="proposal-form-container">
+                                <h4 className="proposal-form-title">
+                                  📝 Cost Proposal & Second Visit
+                                </h4>
+
+                                {proposalErrors[task.requestid] && (
+                                  <div className="proposal-error-box">
+                                    ⚠️ {proposalErrors[task.requestid]}
+                                  </div>
+                                )}
+
+                                <textarea
+                                  className="proposal-textarea"
+                                  placeholder="Diagnosis Note (e.g. Needs new compressor)"
+                                  value={form.diag || ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      task.requestid,
+                                      "diag",
+                                      e.target.value,
+                                    )
+                                  }
+                                />
+                                <div className="proposal-inputs-row">
+                                  <input
+                                    className="proposal-input"
+                                    type="number"
+                                    placeholder="Spare Parts Cost (EGP)"
+                                    value={form.parts || ""}
+                                    onChange={(e) =>
+                                      handleFormChange(
+                                        task.requestid,
+                                        "parts",
+                                        e.target.value,
+                                      )
+                                    }
+                                  />
+                                  <input
+                                    className="proposal-input"
+                                    type="number"
+                                    placeholder="Labor Cost (EGP)"
+                                    value={form.labor || ""}
+                                    onChange={(e) =>
+                                      handleFormChange(
+                                        task.requestid,
+                                        "labor",
+                                        e.target.value,
+                                      )
+                                    }
+                                  />
+                                </div>
+
+                                <div className="proposal-dates-row">
+                                  <div className="proposal-date-col">
+                                    <label className="proposal-label">
+                                      Option 1:
+                                    </label>
+                                    <input
+                                      className="proposal-input"
+                                      type="date"
+                                      value={form.date1 || ""}
+                                      onChange={(e) =>
+                                        handleFormChange(
+                                          task.requestid,
+                                          "date1",
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  <div className="proposal-date-col">
+                                    <label className="proposal-label">
+                                      Option 2:
+                                    </label>
+                                    <input
+                                      className="proposal-input"
+                                      type="date"
+                                      value={form.date2 || ""}
+                                      onChange={(e) =>
+                                        handleFormChange(
+                                          task.requestid,
+                                          "date2",
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="flex-gap-10">
+                                  <button
+                                    className="btn-submit-proposal"
+                                    onClick={() => sendProposal(task.requestid)}
+                                  >
+                                    Send Proposal to Customer
+                                  </button>
+                                  <button
+                                    className="btn-reject-proposal"
+                                    onClick={() =>
+                                      setFormModes((prev) => ({
+                                        ...prev,
+                                        [task.requestid]: null,
+                                      }))
+                                    }
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            )}
 
                           {/* IF PENDING APPROVAL */}
                           {task.status_id === 9 && (
@@ -502,7 +782,7 @@ export default function TechnicianDashboard() {
                             </div>
                           )}
 
-                          {/* IF IN PROGRESS (Customer Accepted!) */}
+                          {/* IF IN PROGRESS */}
                           {task.status_id === 3 && (
                             <button
                               className="btn-finish-repair"
