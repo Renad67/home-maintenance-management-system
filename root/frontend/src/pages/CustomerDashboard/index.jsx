@@ -368,7 +368,11 @@ export default function CustomerDashboard() {
   const getMinDate = () => {
     const minDate = new Date();
     minDate.setDate(minDate.getDate() + 2);
-    return minDate.toISOString().split("T")[0];
+    const year = minDate.getFullYear();
+    const month = String(minDate.getMonth() + 1).padStart(2, "0"); 
+    const day = String(minDate.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`; 
   };
 
   return (
@@ -632,7 +636,7 @@ export default function CustomerDashboard() {
                   <input
                     className="fancy-input"
                     type="date"
-                    min={getMinDate()} /* 🔥 ADD THIS LINE HERE! 🔥 */
+                    min={getMinDate()} 
                     value={preferredDate}
                     onChange={(e) => setPreferredDate(e.target.value)}
                   />
