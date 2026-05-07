@@ -14,11 +14,9 @@ export const createServiceRequest = async (requestData) => {
   const { user_id, device_id, problem, district, address, preferredDate } =
     requestData;
 
-  // Put it straight into the pending pool
   const technician_id = null;
   const status_id = 1; // 1 = pending
 
-  // Automatically generate today's date so the database doesn't crash
   const today = new Date().toISOString().split("T")[0];
 
   const [result] = await pool.query(
@@ -102,15 +100,15 @@ export const lookupDeviceId = async (category, brand) => {
 export const getRequestsByUser = async (userId) => {
   const [rows] = await pool.query(
     `SELECT r.*, s.name as status, t.name as technician_name, 
-                c.category_name, b.brand_name
-         FROM requests r
-         JOIN statuses s ON r.status_id = s.status_id
-         LEFT JOIN technicians t ON r.technician_id = t.technician_id
-         JOIN devices d ON r.device_id = d.device_id
-         JOIN categories c ON d.category_id = c.category_id
-         JOIN brands b ON d.brand_id = b.brand_id
-         WHERE r.user_id = ?
-         ORDER BY r.created_at DESC`,
+            c.category_name, b.brand_name, r.rejection_reason
+     FROM requests r
+     JOIN statuses s ON r.status_id = s.status_id
+     LEFT JOIN technicians t ON r.technician_id = t.technician_id
+     JOIN devices d ON r.device_id = d.device_id
+     JOIN categories c ON d.category_id = c.category_id
+     JOIN brands b ON d.brand_id = b.brand_id
+     WHERE r.user_id = ?
+     ORDER BY r.created_at DESC`,
     [userId],
   );
   return rows;

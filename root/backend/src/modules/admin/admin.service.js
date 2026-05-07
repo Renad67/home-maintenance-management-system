@@ -22,7 +22,7 @@ export const getDashboardData = async () => {
         JOIN users u ON r.user_id = u.userid
         LEFT JOIN technicians t ON r.technician_id = t.technician_id
         JOIN statuses s ON r.status_id = s.status_id
-        ORDER BY r.created_at DESC
+        ORDER BY r.requestid DESC
         LIMIT 6
     `);
 
@@ -60,7 +60,7 @@ export const getAllRequests = async () => {
         JOIN users u ON r.user_id = u.userid
         LEFT JOIN technicians t ON r.technician_id = t.technician_id
         JOIN statuses s ON r.status_id = s.status_id
-        ORDER BY r.created_at DESC
+        ORDER BY r.requestid DESC
     `);
   return requests;
 };

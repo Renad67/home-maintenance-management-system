@@ -1,7 +1,6 @@
 import * as requestService from "./request.service.js";
 import { AppError } from "../../common/utils/response/error.response.js";
 
-// 👉 Make sure this function is here!
 export const createRequest = async (req, res, next) => {
   try {
     const result = await requestService.createServiceRequest(req.body);
@@ -11,7 +10,6 @@ export const createRequest = async (req, res, next) => {
       data: result,
     });
   } catch (error) {
-    // 👇 THIS WILL REVEAL THE HIDDEN DATABASE ERROR! 👇
     console.error("🔥 CRASH REPORT:", error);
     next(error);
   }

@@ -59,7 +59,16 @@ export const getTechnicianReviews = async (techId) => {
   return response.data.data || [];
 };
 
-export const respondToProposal = async (requestId, decision, reason = null) => {
-    const response = await axios.post(`http://localhost:3000/api/tasks/${requestId}/proposal/respond`, { decision, reason }, { headers: getAuthHeader() });
-    return response.data;
+export const respondToProposal = async (
+  requestId,
+  decision,
+  reason = null,
+  chosenDate = null,
+) => {
+  const response = await axios.post(
+    `http://localhost:3000/api/tasks/${requestId}/proposal/respond`,
+    { decision, reason, chosenDate },
+    { headers: getAuthHeader() },
+  );
+  return response.data;
 };

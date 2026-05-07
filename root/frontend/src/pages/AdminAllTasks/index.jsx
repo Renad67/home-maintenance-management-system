@@ -135,7 +135,7 @@ export default function AdminAllTasks() {
                             className="urgent-badge"
                             style={{ marginLeft: "5px" }}
                           >
-                           OVERDUE
+                            OVERDUE
                           </span>
                         )}
                       </td>
@@ -183,7 +183,18 @@ export default function AdminAllTasks() {
                         </div>
                         <div className="confirmed-date-text">
                           Confirmed:{" "}
-                          {req.visit_date?.split("T")[0] || "Pending"}
+                          {req.visit_date
+                            ? req.visit_date.split("T")[0]
+                            : req.preferred_date
+                              ? req.preferred_date.split("T")[0]
+                              : [4, 5, 6].includes(req.status_id) ||
+                                  [
+                                    "rejected",
+                                    "cancelled",
+                                    "completed",
+                                  ].includes(req.status?.toLowerCase()?.trim())
+                                ? "—"
+                                : "Pending"}
                         </div>
                       </td>
 

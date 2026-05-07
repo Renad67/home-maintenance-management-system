@@ -92,7 +92,6 @@ export const claimTask = async (requestId, technicianId) => {
   try {
     await connection.beginTransaction();
 
-    // 1. Lock the row and check if the task is actually available
     const [rows] = await connection.query(
       `SELECT requestid, status_id, technician_id FROM requests WHERE requestid = ? FOR UPDATE`,
       [requestId],
@@ -104,7 +103,6 @@ export const claimTask = async (requestId, technicianId) => {
 
     const request = rows[0];
 
-    // Prevent double-booking if another tech clicked it at the exact same millisecond
     if (request.status_id !== 1 || request.technician_id !== null) {
       throw new AppError(
         "Task is no longer available — it was just claimed.",
@@ -112,7 +110,6 @@ export const claimTask = async (requestId, technicianId) => {
       );
     }
 
-    // 2. Assign the task directly to the technician
     await connection.query(
       "UPDATE requests SET technician_id = ?, status_id = 2 WHERE requestid = ?",
       [technicianId, requestId],

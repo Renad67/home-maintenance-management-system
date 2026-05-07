@@ -70,26 +70,30 @@ export default function AdminDashboard() {
     completed: requests.filter(
       (r) => r.status_id === 4 || r.status?.toLowerCase() === "completed",
     ).length,
+    rejected: requests.filter(
+      (r) => r.rejection_reason !== null && r.rejection_reason !== "",
+    ).length,
   };
 
   const recentRequests = requests.slice(0, 5);
   const latestFeedback = reviews.slice(0, 3);
-  // Helper function to check if a specific date is older than 24 hours
+
   const isOverdue = (createdAt) => {
     if (!createdAt) return false;
     const hoursDifference = Math.abs(new Date() - new Date(createdAt)) / 36e5;
     return hoursDifference > 24;
   };
+
   const overdueTasks = requests.filter((req) => {
     if (req.status_id !== 1 && req.status?.toLowerCase() !== "pending")
       return false;
     const taskDate = new Date(req.created_at);
     const now = new Date();
-    const hoursDifference = Math.abs(now - taskDate) / 36e5; // Convert milliseconds to hours
+    const hoursDifference = Math.abs(now - taskDate) / 36e5;
 
     return hoursDifference > 24;
   });
-  // 🔥 ADVANCED TECHNICIAN RANKING LOGIC (Matches the Performance Page!) 🔥
+
   const techMap = {};
   (requests || []).forEach((req) => {
     const name = req.technician_name;
@@ -149,7 +153,7 @@ export default function AdminDashboard() {
     return b.completedTasks - a.completedTasks;
   });
 
-  const rankedTechnicians = techArray.slice(0, 4); // Show top 4 in widget
+  const rankedTechnicians = techArray.slice(0, 4);
 
   return (
     <div className="admin-layout">
@@ -207,22 +211,7 @@ export default function AdminDashboard() {
       {/* MAIN */}
       <main className="admin-main">
         <header className="admin-header">
-          <div className="admin-header-inner">
-            <div className="search-bar">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#9CA3AF"
-                strokeWidth="2"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input type="text" placeholder="Search anything..." />
-            </div>
-          </div>
+          <div className="admin-header-inner"></div>
         </header>
 
         <div className="admin-content">
@@ -288,6 +277,39 @@ export default function AdminDashboard() {
               icon="✔️"
               variant="green"
             />
+            <div
+              className="stat-card"
+              style={{
+                backgroundColor: "#FEE2E2",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                className="stat-header"
+                style={{
+                  color: "#991B1B",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "px",
+                  marginBottom: "0px",
+                }}
+              >
+                <span>❌</span> Rejected Tasks
+              </div>
+              <h3
+                style={{
+                  color: "#991B1B",
+                  margin: "0",
+                  fontSize: "32 px",
+                  fontWeight: "bold",
+                }}
+              >
+                {stats.rejected}
+              </h3>
+            </div>
           </div>
 
           {/* MIDDLE GRID */}
@@ -338,7 +360,7 @@ export default function AdminDashboard() {
               )}
             </div>
 
-            {/* 🔥 UPDATED: Technician Rankings Panel (with Tags!) 🔥 */}
+            {/* Technician Rankings Panel */}
             <div className="panel top-tech-panel">
               <div className="panel-header">
                 <h3>Technician Rankings</h3>
@@ -405,7 +427,6 @@ export default function AdminDashboard() {
                     <th>Problem</th>
                     <th>Technician</th>
                     <th>Status</th>
-                    {/* 🔥 ADDED DATE HEADER HERE 🔥 */}
                     <th>Dates</th>
                     <th>Rejection Reason</th>
                   </tr>
@@ -421,7 +442,6 @@ export default function AdminDashboard() {
                         }
                       >
                         #{req.requestid}
-                        {/* 🔥 2. Added a space and margin so it doesn't squish! 🔥 */}
                         {req.status_id === 1 && isOverdue(req.created_at) && (
                           <span
                             className="urgent-badge"
@@ -471,7 +491,18 @@ export default function AdminDashboard() {
                         </div>
                         <div className="confirmed-date-text">
                           Confirmed:{" "}
-                          {req.visit_date?.split("T")[0] || "Pending"}
+                          {req.visit_date
+                            ? req.visit_date.split("T")[0]
+                            : req.preferred_date
+                              ? req.preferred_date.split("T")[0]
+                              : [4, 5, 6].includes(req.status_id) ||
+                                  [
+                                    "rejected",
+                                    "cancelled",
+                                    "completed",
+                                  ].includes(req.status?.toLowerCase()?.trim())
+                                ? "—"
+                                : "Pending"}
                         </div>
                       </td>
                       <td

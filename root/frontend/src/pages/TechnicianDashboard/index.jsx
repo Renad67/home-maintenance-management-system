@@ -310,20 +310,6 @@ export default function TechnicianDashboard() {
         <header className="tech-topbar">
           <h1>{activeTab === "tasks" ? "My Tasks" : "My Reviews"}</h1>
           <div className="tech-topbar-right">
-            <div className="tech-search-bar">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#9CA3AF"
-                strokeWidth="2"
-              >
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-              <input type="text" placeholder="Search anything..." />
-            </div>
           </div>
         </header>
 

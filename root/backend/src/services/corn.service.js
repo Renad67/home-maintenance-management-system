@@ -1,6 +1,5 @@
 import pool from "../db/connection.js";
 
-// Helper to convert category names back to technician specialties
 const getTargetSpecialty = (categoryName) => {
   switch (categoryName) {
     case "AC":
@@ -12,7 +11,7 @@ const getTargetSpecialty = (categoryName) => {
     case "Cooker":
       return "Oven Repair";
     default:
-      return categoryName; 
+      return categoryName;
   }
 };
 
@@ -29,19 +28,18 @@ export const autoAssignOverdueTasks = async () => {
       JOIN categories c ON d.category_id = c.category_id
       WHERE r.status_id = 1 
         AND r.technician_id IS NULL
-        AND r.created_at <= NOW() - INTERVAL 36 HOUR
+        AND r.created_at <= NOW() - INTERVAL 1 MINUTE
     `);
 
     if (overdueTasks.length === 0) {
       await connection.commit();
-      return; // No overdue tasks right now, go back to sleep
+      return;
     }
 
     console.log(
       `⚠️ Found ${overdueTasks.length} tasks older than 36h. Auto-assigning...`,
     );
 
-    // 2. Loop through each overdue task and find the perfect technician
     for (const task of overdueTasks) {
       const requiredSpecialty = getTargetSpecialty(task.category_name);
 
@@ -61,7 +59,6 @@ export const autoAssignOverdueTasks = async () => {
       if (availableTechs.length > 0) {
         const selectedTechId = availableTechs[0].technician_id;
 
-        // 3. Assign the task to the chosen technician (Status 2 = Assigned)
         await connection.query(
           "UPDATE requests SET technician_id = ?, status_id = 2 WHERE requestid = ?",
           [selectedTechId, task.requestid],
